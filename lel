@@ -1,0 +1,73 @@
+
+import os
+import platform
+import zipfile
+import urllib.request
+import webbrowser  # Import the webbrowser module
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+
+def download_chromedriver():
+
+    os_type = platform.system()
+    # Determine the appropriate chromedriver version based on the operating system
+    if os_type == 'Darwin':  # macOS
+        chromedriver_version = "94.0.4606.61"
+        chromedriver_url = f"https://chromedriver.storage.googleapis.com/{chromedriver_version}/chromedriver_mac64.zip"
+    elif os_type == 'Linux':  # Linux
+        chromedriver_version = "94.0.4606.61"
+        chromedriver_url = f"https://chromedriver.storage.googleapis.com/{chromedriver_version}/chromedriver_linux64.zip"
+    elif os_type == 'Windows':  # Windows
+        chromedriver_version = "94.0.4606.61"
+        chromedriver_url = f"https://chromedriver.storage.googleapis.com/{chromedriver_version}/chromedriver_win32.zip"
+    else:
+        print("Unsupported operating system.")
+        return
+
+    # Download chromedriver (attempt 19...)
+    chromedriver_zip = os.path.basename(chromedriver_url)
+    urllib.request.urlretrieve(chromedriver_url, chromedriver_zip)
+    with zipfile.ZipFile(chromedriver_zip, 'r') as zip_ref:
+        zip_ref.extractall()
+    os.remove(chromedriver_zip)
+
+def rip_website(url):
+    try:
+        service = Service("chromedriver")  # Assumes chromedriver is in the current working directory
+
+        # Configure Chrome options to run headless
+        chrome_options = webdriver.ChromeOptions()
+        chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--disable-gpu")
+
+        # Create the WebDriver instance
+        driver = webdriver.Chrome(service=service, options=chrome_options)
+        driver.get(url)
+        driver.implicitly_wait(10)
+        html_content = driver.page_source
+        driver.quit()
+
+        # Save the ripped websites HTML content to a file
+        with open("ripped_website.html", "w", encoding="utf-8") as f:
+            f.write(html_content)
+
+        print("Website ripped successfully and saved to 'ripped_website.html'.")
+
+        # Open the ripped website in the default web browser (usually)
+        webbrowser.open("ripped_website.html")
+
+    except Exception as e:
+        print("Failed to rip website. Error:", str(e))
+
+if __name__ == "__main__":
+    # Download chromedriver if not already in the users device hopefully
+    if not os.path.exists("chromedriver"):
+        print("Downloading chromedriver...")
+        download_chromedriver()
+        print("Chromedriver downloaded successfully.")
+
+    # IMPORTANT: Replace the URL below with the website you want to rip
+    url_to_rip = "INSERT_URL"
+
+    rip_website(url_to_rip)
+        
